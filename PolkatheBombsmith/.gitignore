@@ -97,3 +97,11 @@ InitTestScene*.unity*
 
 # Auto-generated scenes by play mode tests
 /[Aa]ssets/[Ii]nit[Tt]est[Ss]cene*.unity*
+
+# フォントファイル（10MB以上、大容量・再配布制限の可能性あり）
+*.ttc
+*.ttc.meta
+
+# PSDファイル（画像編集用・容量が大きく差分追跡に不向き）
+*.psd
+*.psd.meta

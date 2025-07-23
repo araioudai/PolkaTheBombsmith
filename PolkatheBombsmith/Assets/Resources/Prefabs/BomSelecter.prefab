@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 715152350696108740}
   - component: {fileID: 1048870161274837341}
   m_Layer: 0
-  m_Name: BomManager
+  m_Name: BomSelecter
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

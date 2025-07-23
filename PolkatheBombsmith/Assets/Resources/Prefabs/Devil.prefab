@@ -152,7 +152,7 @@ MonoBehaviour:
   turnCheckGnd: {fileID: 4987774451084949672}
   jumpForce: 400
   jumpInterval: 5
-  speed: -2
+  speed: -3
 --- !u!70 &8758022000960064326
 CapsuleCollider2D:
   m_ObjectHideFlags: 0

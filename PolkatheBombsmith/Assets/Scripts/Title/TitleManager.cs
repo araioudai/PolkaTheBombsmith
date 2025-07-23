@@ -77,6 +77,7 @@ public class TitleManager : MonoBehaviour
         {
             virtualPad = true;
         }
+        Time.timeScale = 1f;
     }
     void ButtonSet()
     {
@@ -287,7 +288,7 @@ public class TitleManager : MonoBehaviour
 
             //次のステージへ
             cancellNumber++;
-            Debug.Log(cancellNumber);
+            //Debug.Log(cancellNumber);
         }
 
         //全ステージが解放されたら状態更新

@@ -105,12 +105,19 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 8
   bombSound: {fileID: 8300000, guid: e91b35958fdf7b94eb013ab9e6891c86, type: 3}
-  enemyDead: {fileID: 8300000, guid: 63594b97675a62345a5e1a7737ad1667, type: 3}
+  enemyDead:
+  - {fileID: 8300000, guid: 63594b97675a62345a5e1a7737ad1667, type: 3}
+  - {fileID: 8300000, guid: 2642bbfd3c75ab147b84ddbc5f4aca94, type: 3}
+  - {fileID: 8300000, guid: 943ed97a6154add4eb5a5e6fa68c594b, type: 3}
+  - {fileID: 8300000, guid: 4e612f4213b05fc4386667a8a0cd7401, type: 3}
   ghostDead: {fileID: 8300000, guid: 943ed97a6154add4eb5a5e6fa68c594b, type: 3}
   devilDead: {fileID: 8300000, guid: 4e612f4213b05fc4386667a8a0cd7401, type: 3}
   bombPrefab: {fileID: 6648211185439405731, guid: 7d24e2d2e62bd4cf68c0f8fc049d6780, type: 3}
   bomb: {fileID: 955709871800535574}
   blockPrefab: {fileID: 427199564141168535, guid: a677770afb2d04956954e3b2476a7985, type: 3}
+  bombType:
+  - {fileID: 21300000, guid: 15a6c814c4fe1494398068613cc36017, type: 3}
+  - {fileID: 21300000, guid: 1051b1e371ac6454bbfb2055c13c11e5, type: 3}
   myBombType: 0
 --- !u!58 &7938829898904890625
 CircleCollider2D:

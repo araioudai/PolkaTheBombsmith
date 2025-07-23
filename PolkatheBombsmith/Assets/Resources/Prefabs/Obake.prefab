@@ -151,7 +151,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   turnCheckGnd: {fileID: 3561667867558735300}
   turnInterval: 3
-  speed: -2
+  speed: -3
 --- !u!70 &1807755404571162987
 CapsuleCollider2D:
   m_ObjectHideFlags: 0

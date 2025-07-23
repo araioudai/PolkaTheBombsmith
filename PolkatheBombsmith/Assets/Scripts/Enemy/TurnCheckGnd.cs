@@ -9,11 +9,11 @@ public class TurnCheckGnd : MonoBehaviour
     void Start()
     {
         turnPointGnd = false; // 初期値を設定
-        Debug.Log(turnPointGnd);
+        //Debug.Log(turnPointGnd);
     }
     void OnTriggerExit2D(Collider2D collision)
     {
-        Debug.Log("地面端です"); 
+        //Debug.Log("地面端です"); 
         turnPointGnd = true; // 反転させる
     }
 }

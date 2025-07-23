@@ -1,7 +1,6 @@
 ﻿using UnityEngine;
 using TMPro;
 using UnityEngine.UI;
-using UnityEditor.SearchService;
 using UnityEngine.SceneManagement;
 
 public class TutorialManager : MonoBehaviour

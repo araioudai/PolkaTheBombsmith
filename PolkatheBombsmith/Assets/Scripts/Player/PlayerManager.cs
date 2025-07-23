@@ -25,6 +25,7 @@ public class PlayerManager : MonoBehaviour
     [SerializeField] private LayerMask ceilingChecklayer;                       //壁接地判定用のレイヤー
     [SerializeField] private float speed;                                       //プレイヤーの移動スピード
     [SerializeField] private float bufferTime;                                  //先行入力ジャンプタイマーセット用
+    //private Transform cameraScale;
     private float jumpBufferTimer;                                              //先行入力ジャンプタイマー
     private bool jumpBuffered;                                                  //先行入力ジャンプ用フラグ
     private bool isGround;                                                      //地面に接地しているか
@@ -32,8 +33,8 @@ public class PlayerManager : MonoBehaviour
     private bool isJump;                                                        //ジャンプ中かどうか
     private float jumpPow;                                                      //ジャンプ力（AddForce の力）
     private float jumpPowCeiling;                                               //天井がある時のジャンプ力
-    private float interval;
-    private float setInterval;
+    private float interval;                                                     //爆弾を置くインターバル          
+    private float setInterval;                                                  //爆弾インターバルセット用
     #endregion
 
     #region public変数
@@ -57,6 +58,7 @@ public class PlayerManager : MonoBehaviour
     {
         Move();
         TypeAheadJump();
+        AttackCountControl();
         DownInterval();
     }
     #endregion
@@ -67,6 +69,7 @@ public class PlayerManager : MonoBehaviour
         rb = GetComponent<Rigidbody2D>(); //Rigidbody2D取得
         animator = GetComponent<Animator>();
         audioSource = GetComponent<AudioSource>();
+        //cameraScale = gameObject.transform;
         posY = 0;
         bufferTime = 0.2f;
         jumpBufferTimer = 0;
@@ -74,7 +77,7 @@ public class PlayerManager : MonoBehaviour
         isGround = false;
         isCeiling = false;
         gameOver = false;
-        speed = 3f;     //移動
+        speed = 4f;     //移動
         jumpPow = 650f; //ジャンプ力
         jumpPowCeiling = 400f;
         interval = 0;
@@ -207,15 +210,29 @@ public class PlayerManager : MonoBehaviour
             Vector3 snappedPosition = new Vector3(snappedX, snappedY, playerPos.z);
 
             //爆弾を生成（スナップされた位置に配置）
-            GameObject bomb = Instantiate(bombCeiling, snappedPosition, Quaternion.identity);
-            bomb.GetComponent<BomManager>().myBombType = BomSelect.seles;
+            if(BomSelect.seles == 3 && generate < 5)
+            {
+
+            }
+            else
+            {
+                GameObject bomb = Instantiate(bombCeiling, snappedPosition, Quaternion.identity);
+                bomb.GetComponent<BomManager>().myBombType = BomSelect.seles;
+                generate -= 1;
+                if (BomSelect.seles == 3) { generate -= 4; }
+                isGenerate = true;
+                interval = setInterval;
+            }
             //bombPos = snappedPosition;
-
-            generate -= 1;
-            isGenerate = true;
-            interval = setInterval;
         }
+    }
 
+    void AttackCountControl()
+    {
+        if (generate < 0)
+        {
+            generate = 0;
+        }
     }
 
     void DownInterval()

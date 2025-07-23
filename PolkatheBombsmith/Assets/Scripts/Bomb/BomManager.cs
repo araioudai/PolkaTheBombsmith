@@ -1,10 +1,17 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 
 public class BomManager : MonoBehaviour
 {
+    //定数:敵死亡サウンド用
+    private const int SLIME = 0;
+    private const int BAT = 1;
+    private const int GHOST = 2;
+    private const int DEVIL = 3;
+
     private Vector3 bombPos;                             //爆弾のポジション
     private Rigidbody2D rb;
     private CircleCollider2D circle;
@@ -13,12 +20,13 @@ public class BomManager : MonoBehaviour
     private AudioSource audioSource;                     //音を鳴らす用プレーヤー
     [SerializeField] private LayerMask groundChecklayer; //床接地判定用のレイヤー
     [SerializeField] private AudioClip bombSound;        //オーディオセット用
-    [SerializeField] private AudioClip enemyDead;        //スライム倒した時
+    [SerializeField] private AudioClip[] enemyDead;      //敵を倒した時配列
     [SerializeField] private AudioClip ghostDead;        //おばけ倒した時
     [SerializeField] private AudioClip devilDead;        //デビル倒した時
     [SerializeField] private GameObject bombPrefab;      //爆弾エフェクト用
-    [SerializeField] private GameObject bomb;
-    [SerializeField] private GameObject blockPrefab;
+    [SerializeField] private GameObject bomb;            //爆弾自身取得 
+    [SerializeField] private GameObject blockPrefab;     //ブロック破壊エフェクト用
+    [SerializeField] private Sprite[] bombType;          //爆弾タイプ画像切り替え表示用
     //[SerializeField] private List<AudioClip> audioClip = new List<AudioClip>(); //オーディオセット用
     private float timer;                                 //爆発時間
     private float timerBlock;
@@ -27,8 +35,10 @@ public class BomManager : MonoBehaviour
     private bool isCeiling;                              //天井用フラグ
     //private bool isGrounded;                             //地面用フラグ
     private bool exploded;                               //爆発済みフラグ
+    private float count;
+    private float setCount;
 
-    public int myBombType; //プレイヤーから受け取った個別の爆弾タイプ
+    public int myBombType;                               //プレイヤーから受け取った個別の爆弾タイプ
 
     // Start is called before the first frame update
     void Start()
@@ -38,43 +48,51 @@ public class BomManager : MonoBehaviour
         circle = GetComponent<CircleCollider2D>();
         rb = GetComponent<Rigidbody2D>();
         bombSprite = GetComponent<SpriteRenderer>();
-        GameObject obj = GameObject.Find("BomManager");
+        GameObject obj = GameObject.Find("BomSelecter");
         bomSelect = obj.GetComponent<BomSelect>();
         bombPrefab.transform.localScale = new Vector3(0.5f, 0.5f, 0.5f);
         blockPrefab.transform.localScale = new Vector3(0.5f, 0.5f, 0.5f);
         //timerSet = 1f;
         colliderTest.enabled = false;
         exploded = false;
+        count = 0;
+        setCount = 0.5f;
         if (myBombType == 0)//通常
         {
-            timer = 3f;
+            timer = 2f;
             rb.gravityScale = 1f;
             bomNo = 0;
+            bombSprite.sprite = bombType[0];
         }
         else if (myBombType == 1)//天井
         {
-            timer = 3f;
+            timer = 2f;
             rb.gravityScale = -1f;
-            transform.Rotate(0, 0, 180);
             bomNo = 1;
+            bombSprite.sprite = bombType[1];
         }
         else if (myBombType == 2)//床
         {
-            timer = 3f;
+            timer = 2f;
             rb.gravityScale = 1f;
+            transform.Rotate(0, 0, 180);
             bomNo = 2;
+            bombSprite.sprite = bombType[1];
         }
         else if (myBombType == 3)//地雷
         {
+            timer = 1000f;
             rb.gravityScale = 1f;
             colliderTest.enabled = true;
             bomNo = 3;
+            bombSprite.sprite = bombType[0];
         }
         else if (myBombType == 4)//強化
         {
             timer = 5f;
             rb.gravityScale = 1f;
             bomNo = 4;
+            bombSprite.sprite = bombType[0];
         }
     }
 
@@ -82,7 +100,7 @@ public class BomManager : MonoBehaviour
     void Update()
     {
         DestroyBomb();
-        //BlockTimer();
+        CountTimer();
         if (myBombType == 1)
         {
             PutOnTrigger();
@@ -162,22 +180,35 @@ public class BomManager : MonoBehaviour
                 if (hit != null && hit.CompareTag("Enemy"))
                 {
                     Destroy(hit.gameObject); //敵を倒す
-                    audioSource.PlayOneShot(enemyDead);
+                    audioSource.PlayOneShot(enemyDead[SLIME]);
                     GameManager.enemyRest -= 1;
                 }
                 if (hit != null && hit.CompareTag("EnemyGhost"))
                 {
                     Destroy(hit.gameObject); //敵を倒す
                     //音 to do
-                    audioSource.PlayOneShot(ghostDead);
+                    audioSource.PlayOneShot(enemyDead[GHOST]);
                     GameManager.enemyRest -= 1;
                 }
                 if (hit != null && hit.CompareTag("EnemyDevil"))
                 {
                     Destroy(hit.gameObject); //敵を倒す
                     //音 to do
-                    audioSource.PlayOneShot(devilDead);
+                    audioSource.PlayOneShot(enemyDead[DEVIL]);
                     GameManager.enemyRest -= 1;
+                }
+            }
+            if (myBombType == 1)
+            {
+                Vector2 worldPos = tilemap.GetCellCenterWorld(targetCell);
+                float radius = 0.2f; //小さい値でピンポイントにする
+
+                Collider2D hit = Physics2D.OverlapCircle(worldPos, radius, LayerMask.GetMask("Enemy")); // "Enemy" レイヤーのみに反応
+                if (hit != null && hit.CompareTag("EnemyBat"))
+                {
+                    Destroy(hit.gameObject); //敵を倒す
+                    //音 to do
+                    audioSource.PlayOneShot(enemyDead[BAT]);
                 }
             }
         }
@@ -189,16 +220,17 @@ public class BomManager : MonoBehaviour
         {
             yield return null;
         }
+        //yield return new WaitForSeconds(0.75f);
         Explode();
     }
 
-    void BlockTimer()
+    void CountTimer()
     {
-        if (timerBlock > 0)
+        if (count > 0)
         {
-            timerBlock -= Time.deltaTime;
+            count -= Time.deltaTime;
         }
-        Debug.Log(timerBlock);
+        Debug.Log(count);
     }
 
     void DestroyBomb()
@@ -212,6 +244,7 @@ public class BomManager : MonoBehaviour
         {
             exploded = true;                           //1回限り
             timer = 0;                                 //タイマーを0以下にしないようにセット
+            //Explode();
             StartCoroutine(ExplodePlace());            //爆発処理（爆弾タイプが天井用か床用の時Tilemap破壊）
             bombSprite.enabled = false;                //爆弾を非表示にする
             if(myBombType != 1)circle.enabled = false; //当たり判定も消す
@@ -276,6 +309,55 @@ public class BomManager : MonoBehaviour
         {
             rb.gravityScale = 0;
             circle.enabled = false;
+        }
+    }
+
+    private void OnTriggerEnter2D(Collider2D collider)
+    {
+        if (myBombType == 3)
+        {
+            if (collider.gameObject.CompareTag("Enemy"))
+            {
+                timer = 0;
+                Destroy(collider.gameObject); //敵を倒す
+                audioSource.PlayOneShot(enemyDead[SLIME]);
+                GameManager.enemyRest -= 1;
+                /* count = setCount;
+                 if (count <= 0)
+                 {
+                     Destroy(collider.gameObject); //敵を倒す
+                     audioSource.PlayOneShot(enemyDead[SLIME]);
+                     count = 0;
+                 }*/
+            }
+            if (collider.gameObject.CompareTag("EnemyGhost"))
+            {
+                timer = 0;
+                Destroy(collider.gameObject); //敵を倒す
+                audioSource.PlayOneShot(enemyDead[GHOST]);
+                GameManager.enemyRest -= 1;
+                /* count = setCount;
+                 if (count <= 0)
+                 {
+                     count = 0;
+                     Destroy(collider.gameObject); //敵を倒す
+                     audioSource.PlayOneShot(enemyDead[GHOST]);
+                 }*/
+            }
+            if (collider.gameObject.CompareTag("EnemyDevil"))
+            {
+                timer = 0;
+                Destroy(collider.gameObject); //敵を倒す
+                audioSource.PlayOneShot(enemyDead[DEVIL]);
+                GameManager.enemyRest -= 1;
+                /* count = setCount;
+                 if (count <= 0)
+                 {
+                     count = 0;
+                     Destroy(collider.gameObject); //敵を倒す
+                     audioSource.PlayOneShot(enemyDead[DEVIL]);
+                 }*/
+            }
         }
     }
 }

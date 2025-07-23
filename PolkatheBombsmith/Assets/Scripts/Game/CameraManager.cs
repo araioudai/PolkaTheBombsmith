@@ -1,10 +1,13 @@
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 public class CameraManager : MonoBehaviour
 {
-    public Transform target;           // 追従対象（プレイヤーのTransform）
-    public Vector2 deadZone = new Vector2(2f, 1.5f); // デッドゾーンのX・Y範囲（中心からの距離）
-    public float followSpeed = 5f;     // 追従速度（Lerpの係数）
+    PlayerAction controls;
+    [SerializeField] private Transform target;                         //追従対象（プレイヤーのTransform）
+    [SerializeField] private Vector2 deadZone = new Vector2(2f, 1.5f); //デッドゾーンのX・Y範囲（中心からの距離）
+    [SerializeField] private float followSpeed = 5f;                   //追従速度（Lerpの係数）
+    private Camera maincam;                                            //カメラ拡大縮小用
 
     void LateUpdate()
     {
@@ -33,5 +36,74 @@ public class CameraManager : MonoBehaviour
         }
         // カメラ位置を更新（Z軸は維持）
         transform.position = new Vector3(pos.x, pos.y, transform.position.z);
+    }
+
+    void Start()
+    {
+        Init();
+    }
+    void Init()
+    {
+        maincam = GetComponent<Camera>();
+    }
+
+    void CameraExpansion(InputAction.CallbackContext context)
+    {
+        if (maincam.orthographicSize > 5f)
+        {
+            maincam.orthographicSize -= 5f;
+            /*float target = maincam.orthographicSize - 5f;
+            while (target < maincam.orthographicSize)
+            {
+                maincam.orthographicSize -= Time.deltaTime;
+            }*/
+        }
+        //cameraScale.transform.localScale = Vector3.one / 2;
+        //Debug.Log("縮小");
+    }
+
+    void CameraReduction(InputAction.CallbackContext context)
+    {
+        if (maincam.orthographicSize < 20f)
+        {
+            maincam.orthographicSize += 5f;
+            /* float target = maincam.orthographicSize + 5f;
+             while(target > maincam.orthographicSize)
+             {
+                 maincam.orthographicSize += Time.deltaTime;
+             }*/
+        }
+        //cameraScale.transform.localScale = Vector3.one * 2;
+        //Debug.Log("拡大");
+    }
+
+    private void Awake()
+    {
+        controls = new PlayerAction();
+    }
+
+    private void OnEnable()
+    {
+        //「Camera」アクションのアクションマップを有効
+        controls.Camera.CameraExpansion.Enable();
+        controls.Camera.CameraReduction.Enable();
+
+        //カメラ拡大
+        controls.Camera.CameraExpansion.performed += CameraExpansion;
+
+        //カメラ縮小
+        controls.Camera.CameraReduction.performed += CameraReduction;
+    }
+    private void OnDisable()
+    {
+        //カメラ拡大
+        controls.Camera.CameraExpansion.performed -= CameraExpansion;
+
+        //カメラ縮小
+        controls.Camera.CameraReduction.performed -= CameraReduction;
+
+        //「Camera」アクションのアクションマップを無効
+        controls.Camera.CameraExpansion.Disable();
+        controls.Camera.CameraReduction.Disable();
     }
 }

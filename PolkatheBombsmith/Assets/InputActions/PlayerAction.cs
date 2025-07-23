@@ -340,6 +340,76 @@ public partial class @PlayerAction: IInputActionCollection2, IDisposable
                     ""isPartOfComposite"": false
                 }
             ]
+        },
+        {
+            ""name"": ""Camera"",
+            ""id"": ""a0758ca7-0c46-41d3-b2a5-c9238ca6c43b"",
+            ""actions"": [
+                {
+                    ""name"": ""CameraExpansion"",
+                    ""type"": ""Button"",
+                    ""id"": ""a278e493-f127-46d0-ab17-141e4a534146"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""CameraReduction"",
+                    ""type"": ""Button"",
+                    ""id"": ""8f88b0c5-8ea3-46bb-9d99-dd6fb81b9bd6"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                }
+            ],
+            ""bindings"": [
+                {
+                    ""name"": """",
+                    ""id"": ""5be012e8-42ea-48ea-99b3-986a93686ce3"",
+                    ""path"": ""<Keyboard>/w"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""CameraExpansion"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""49b50de4-a8c1-45d4-8df0-cd721da98501"",
+                    ""path"": ""<Gamepad>/rightStick/up"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""CameraExpansion"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""26fe4058-2abb-4212-b0f5-e75872e4ec30"",
+                    ""path"": ""<Keyboard>/s"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""CameraReduction"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""144fb0c4-fb70-4086-9ea0-0599ea2bcacc"",
+                    ""path"": ""<Gamepad>/rightStick/down"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""CameraReduction"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                }
+            ]
         }
     ],
     ""controlSchemes"": []
@@ -357,6 +427,10 @@ public partial class @PlayerAction: IInputActionCollection2, IDisposable
         m_Title = asset.FindActionMap("Title", throwIfNotFound: true);
         m_Title_LDown = m_Title.FindAction("LDown", throwIfNotFound: true);
         m_Title_LUp = m_Title.FindAction("LUp", throwIfNotFound: true);
+        // Camera
+        m_Camera = asset.FindActionMap("Camera", throwIfNotFound: true);
+        m_Camera_CameraExpansion = m_Camera.FindAction("CameraExpansion", throwIfNotFound: true);
+        m_Camera_CameraReduction = m_Camera.FindAction("CameraReduction", throwIfNotFound: true);
     }
 
     public void Dispose()
@@ -584,6 +658,60 @@ public partial class @PlayerAction: IInputActionCollection2, IDisposable
         }
     }
     public TitleActions @Title => new TitleActions(this);
+
+    // Camera
+    private readonly InputActionMap m_Camera;
+    private List<ICameraActions> m_CameraActionsCallbackInterfaces = new List<ICameraActions>();
+    private readonly InputAction m_Camera_CameraExpansion;
+    private readonly InputAction m_Camera_CameraReduction;
+    public struct CameraActions
+    {
+        private @PlayerAction m_Wrapper;
+        public CameraActions(@PlayerAction wrapper) { m_Wrapper = wrapper; }
+        public InputAction @CameraExpansion => m_Wrapper.m_Camera_CameraExpansion;
+        public InputAction @CameraReduction => m_Wrapper.m_Camera_CameraReduction;
+        public InputActionMap Get() { return m_Wrapper.m_Camera; }
+        public void Enable() { Get().Enable(); }
+        public void Disable() { Get().Disable(); }
+        public bool enabled => Get().enabled;
+        public static implicit operator InputActionMap(CameraActions set) { return set.Get(); }
+        public void AddCallbacks(ICameraActions instance)
+        {
+            if (instance == null || m_Wrapper.m_CameraActionsCallbackInterfaces.Contains(instance)) return;
+            m_Wrapper.m_CameraActionsCallbackInterfaces.Add(instance);
+            @CameraExpansion.started += instance.OnCameraExpansion;
+            @CameraExpansion.performed += instance.OnCameraExpansion;
+            @CameraExpansion.canceled += instance.OnCameraExpansion;
+            @CameraReduction.started += instance.OnCameraReduction;
+            @CameraReduction.performed += instance.OnCameraReduction;
+            @CameraReduction.canceled += instance.OnCameraReduction;
+        }
+
+        private void UnregisterCallbacks(ICameraActions instance)
+        {
+            @CameraExpansion.started -= instance.OnCameraExpansion;
+            @CameraExpansion.performed -= instance.OnCameraExpansion;
+            @CameraExpansion.canceled -= instance.OnCameraExpansion;
+            @CameraReduction.started -= instance.OnCameraReduction;
+            @CameraReduction.performed -= instance.OnCameraReduction;
+            @CameraReduction.canceled -= instance.OnCameraReduction;
+        }
+
+        public void RemoveCallbacks(ICameraActions instance)
+        {
+            if (m_Wrapper.m_CameraActionsCallbackInterfaces.Remove(instance))
+                UnregisterCallbacks(instance);
+        }
+
+        public void SetCallbacks(ICameraActions instance)
+        {
+            foreach (var item in m_Wrapper.m_CameraActionsCallbackInterfaces)
+                UnregisterCallbacks(item);
+            m_Wrapper.m_CameraActionsCallbackInterfaces.Clear();
+            AddCallbacks(instance);
+        }
+    }
+    public CameraActions @Camera => new CameraActions(this);
     public interface IPlayerActions
     {
         void OnMove(InputAction.CallbackContext context);
@@ -599,5 +727,10 @@ public partial class @PlayerAction: IInputActionCollection2, IDisposable
     {
         void OnLDown(InputAction.CallbackContext context);
         void OnLUp(InputAction.CallbackContext context);
+    }
+    public interface ICameraActions
+    {
+        void OnCameraExpansion(InputAction.CallbackContext context);
+        void OnCameraReduction(InputAction.CallbackContext context);
     }
 }
